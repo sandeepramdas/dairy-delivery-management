@@ -4,13 +4,13 @@ const { successResponse, errorResponse, paginatedResponse } = require('../utils/
 // Create new product
 const createProduct = async (req, res, next) => {
   try {
-    const { product_name, product_code, unit, price_per_unit, description } = req.body;
+    const { product_name, product_code, unit, price_per_unit, description, is_active } = req.body;
 
     const result = await query(
-      `INSERT INTO product_catalog (product_name, product_code, unit, price_per_unit, description)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO product_catalog (product_name, product_code, unit, price_per_unit, description, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [product_name, product_code, unit, price_per_unit, description]
+      [product_name, product_code, unit, price_per_unit, description, is_active !== undefined ? is_active : true]
     );
 
     return successResponse(res, result.rows[0], 'Product created successfully', 201);
