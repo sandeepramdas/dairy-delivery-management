@@ -30,14 +30,14 @@ const getAllAreas = async (req, res, next) => {
     let paramIndex = 1;
 
     if (is_active !== undefined) {
-      whereClause += ` AND is_active = $${paramIndex}`;
+      whereClause += ` AND a.is_active = $${paramIndex}`;
       queryParams.push(is_active === 'true');
       paramIndex++;
     }
 
     // Get total count
     const countResult = await query(
-      `SELECT COUNT(*) FROM areas ${whereClause}`,
+      `SELECT COUNT(*) FROM areas a ${whereClause}`,
       queryParams
     );
     const total = parseInt(countResult.rows[0].count);
