@@ -25,11 +25,17 @@ export default {
           cream: '#FFF8E7',
           vanilla: '#FFF5D6',
         },
+        'milk-white': '#FDFCFB',
+        'milk-cream': '#FFF8E7',
+        'milk-vanilla': '#FFF5D6',
         fresh: {
           mint: '#E8F5E9',
           green: '#4CAF50',
           lime: '#8BC34A',
         },
+        'fresh-mint': '#E8F5E9',
+        'fresh-green': '#4CAF50',
+        'fresh-lime': '#8BC34A',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
