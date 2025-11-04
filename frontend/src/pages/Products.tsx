@@ -9,7 +9,7 @@ interface Product {
   product_name: string;
   product_code: string;
   unit: string;
-  price_per_unit: number;
+  price_per_unit: string | number; // API returns string, but can be number
   description?: string;
   is_active: boolean;
   created_at?: string;
@@ -224,7 +224,7 @@ const Products: React.FC = () => {
                       Unit: {product.unit}
                     </span>
                     <span className="text-lg font-bold text-fresh-green">
-                      ₹{product.price_per_unit.toFixed(2)}
+                      ₹{parseFloat(product.price_per_unit).toFixed(2)}
                     </span>
                   </div>
                   {product.description && (
