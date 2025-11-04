@@ -300,7 +300,9 @@ const getCalendarView = async (req, res, next) => {
     }
 
     const startDate = `${year}-${month.padStart(2, '0')}-01`;
-    const endDate = `${year}-${month.padStart(2, '0')}-31`;
+    // Calculate last day of month properly (handles 28, 29, 30, 31 days)
+    const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+    const endDate = `${year}-${month.padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
 
     let whereClause = 'WHERE d.scheduled_date >= $1 AND d.scheduled_date <= $2';
     const queryParams = [startDate, endDate];
