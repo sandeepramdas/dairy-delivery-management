@@ -72,24 +72,34 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
 
   // Initialize Google Maps Autocomplete
   useEffect(() => {
-    if (isOpen && addressInputRef.current && window.google) {
-      try {
-        autocompleteRef.current = new window.google.maps.places.Autocomplete(
-          addressInputRef.current,
-          {
-            types: ['address'],
-            componentRestrictions: { country: 'in' }, // Restrict to India
-          }
-        );
+    if (isOpen && addressInputRef.current) {
+      // Wait for Google Maps to load
+      const initAutocomplete = () => {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          try {
+            autocompleteRef.current = new window.google.maps.places.Autocomplete(
+              addressInputRef.current!,
+              {
+                types: ['establishment', 'geocode'], // Allow both establishments and addresses
+                componentRestrictions: { country: 'in' }, // Restrict to India
+              }
+            );
 
-        autocompleteRef.current.addListener('place_changed', handlePlaceSelect);
-      } catch (error) {
-        console.error('Error initializing Google Maps:', error);
-      }
+            autocompleteRef.current.addListener('place_changed', handlePlaceSelect);
+          } catch (error) {
+            console.error('Error initializing Google Maps:', error);
+          }
+        } else {
+          // Retry after a short delay if Google Maps isn't loaded yet
+          setTimeout(initAutocomplete, 500);
+        }
+      };
+
+      initAutocomplete();
     }
 
     return () => {
-      if (autocompleteRef.current) {
+      if (autocompleteRef.current && window.google) {
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
@@ -394,7 +404,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
                     />
                   </div>
                   <p className="text-xs text-dairy-600 mt-1">
-                    Start typing to search for addresses using Google Maps
+                    Start typing to search, or enter address manually if not found
                   </p>
                 </div>
                 <div className="md:col-span-2">
@@ -445,7 +455,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <Navigation className="w-5 h-5 text-fresh-green" />
-                GPS Coordinates (Auto-filled from Maps)
+                GPS Coordinates (Optional)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -458,9 +468,8 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
                     name="latitude"
                     value={formData.latitude}
                     onChange={handleChange}
-                    className="input bg-gray-50"
-                    placeholder="Auto-filled from search"
-                    readOnly
+                    className="input"
+                    placeholder="Auto-filled or enter manually"
                   />
                 </div>
                 <div>
@@ -473,9 +482,8 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
                     name="longitude"
                     value={formData.longitude}
                     onChange={handleChange}
-                    className="input bg-gray-50"
-                    placeholder="Auto-filled from search"
-                    readOnly
+                    className="input"
+                    placeholder="Auto-filled or enter manually"
                   />
                 </div>
                 <div className="md:col-span-2">
