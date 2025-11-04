@@ -101,10 +101,12 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
   const loadCustomers = async () => {
     try {
-      const response = await customersAPI.getAll({ status: 'active', limit: 200 });
-      setCustomers(response.data.data);
-    } catch (error) {
-      toast.error('Failed to load customers');
+      const response = await customersAPI.getAll({ status: 'active', limit: 100 });
+      setCustomers(response.data.data || []);
+    } catch (error: any) {
+      console.error('Failed to load customers:', error);
+      toast.error(error.response?.data?.message || 'Failed to load customers');
+      setCustomers([]);
     }
   };
 
