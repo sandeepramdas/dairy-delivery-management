@@ -113,9 +113,11 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   const loadProducts = async () => {
     try {
       const response = await productsAPI.getAll({ is_active: true, limit: 100 });
-      setProducts(response.data.data);
-    } catch (error) {
-      toast.error('Failed to load products');
+      setProducts(response.data.data || []);
+    } catch (error: any) {
+      console.error('Failed to load products:', error);
+      toast.error(error.response?.data?.message || 'Failed to load products');
+      setProducts([]);
     }
   };
 
