@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dairy-50 min-h-screen font-sans text-gray-900;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-fresh-green to-fresh-lime text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-fresh-green px-6 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg border-2 border-fresh-green hover:bg-fresh-mint transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 p-6;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 border-2 border-dairy-200 rounded-xl focus:border-fresh-green focus:ring-2 focus:ring-fresh-green/20 outline-none transition-all duration-200;
+  }
+
+  .stat-card {
+    @apply card bg-gradient-to-br;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-dairy-100;
+  }
+
+  .nav-link-active {
+    @apply bg-gradient-to-r from-fresh-green to-fresh-lime text-white shadow-md;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-fresh-green to-fresh-lime bg-clip-text text-transparent;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dairy-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-dairy-400 rounded-full hover:bg-dairy-500;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
