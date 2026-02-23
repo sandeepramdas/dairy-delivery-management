@@ -434,6 +434,65 @@ const deleteDelivery = async (req, res, next) => {
   }
 };
 
+// Import the automated delivery generation job
+const {
+  generateTodayDeliveries,
+  generateTomorrowDeliveries,
+  generateDeliveriesForDateRange,
+} = require('../jobs/generateDailyDeliveries');
+
+// Generate deliveries for today (manual trigger)
+const generateTodayDeliveriesEndpoint = async (req, res, next) => {
+  try {
+    const result = await generateTodayDeliveries();
+    return successResponse(
+      res,
+      result,
+      `Generated ${result.count} deliveries for today`,
+      201
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Generate deliveries for tomorrow (manual trigger)
+const generateTomorrowDeliveriesEndpoint = async (req, res, next) => {
+  try {
+    const result = await generateTomorrowDeliveries();
+    return successResponse(
+      res,
+      result,
+      `Generated ${result.count} deliveries for tomorrow`,
+      201
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Generate deliveries from subscriptions for a date range
+const generateDeliveriesFromSubscriptions = async (req, res, next) => {
+  try {
+    const { start_date, end_date } = req.body;
+
+    if (!start_date || !end_date) {
+      return errorResponse(res, 'start_date and end_date are required', 400);
+    }
+
+    const result = await generateDeliveriesForDateRange(start_date, end_date);
+
+    return successResponse(
+      res,
+      result,
+      `Generated ${result.count} deliveries from ${start_date} to ${end_date}`,
+      201
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createDelivery,
   getAllDeliveries,
@@ -447,4 +506,7 @@ module.exports = {
   reportException,
   getExceptions,
   deleteDelivery,
+  generateDeliveriesFromSubscriptions,
+  generateTodayDeliveriesEndpoint,
+  generateTomorrowDeliveriesEndpoint,
 };

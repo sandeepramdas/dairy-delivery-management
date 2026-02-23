@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = 'http://localhost:3005/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -61,6 +61,7 @@ export const productsAPI = {
 export const deliveriesAPI = {
   getAll: (params?: any) => api.get('/deliveries', { params }),
   getToday: (params?: any) => api.get('/deliveries/today', { params }),
+  getTodayDeliveries: (params?: any) => api.get('/deliveries/today', { params }),
   getCalendar: (year: number, month: number, area_id?: string) =>
     api.get('/deliveries/calendar', { params: { year, month, area_id } }),
   getByDate: (date: string, params?: any) =>
@@ -74,6 +75,11 @@ export const deliveriesAPI = {
     api.post(`/deliveries/${id}/exceptions`, data),
   getExceptions: (id: string) =>
     api.get(`/deliveries/${id}/exceptions`),
+  delete: (id: string) => api.delete(`/deliveries/${id}`),
+  generateToday: () => api.post('/deliveries/generate/today'),
+  generateTomorrow: () => api.post('/deliveries/generate/tomorrow'),
+  generateRange: (start_date: string, end_date: string) =>
+    api.post('/deliveries/generate/range', { start_date, end_date }),
 };
 
 // Subscriptions API
@@ -85,6 +91,7 @@ export const subscriptionsAPI = {
   pause: (id: string) => api.post(`/subscriptions/${id}/pause`),
   resume: (id: string) => api.post(`/subscriptions/${id}/resume`),
   cancel: (id: string) => api.post(`/subscriptions/${id}/cancel`),
+  delete: (id: string) => api.delete(`/subscriptions/${id}`),
 };
 
 // Payments API
@@ -93,6 +100,7 @@ export const paymentsAPI = {
   getById: (id: string) => api.get(`/payments/${id}`),
   create: (data: any) => api.post('/payments', data),
   getAllocate: (id: string, data: any) => api.post(`/payments/${id}/allocate`, data),
+  delete: (id: string) => api.delete(`/payments/${id}`),
 };
 
 // Reports API

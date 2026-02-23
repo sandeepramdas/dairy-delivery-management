@@ -14,6 +14,11 @@ const {
 // All routes require authentication
 router.use(authenticateToken);
 
+// Delivery generation endpoints (automated from subscriptions)
+router.post('/generate/today', authorizeRoles('admin', 'manager'), deliveryController.generateTodayDeliveriesEndpoint);
+router.post('/generate/tomorrow', authorizeRoles('admin', 'manager'), deliveryController.generateTomorrowDeliveriesEndpoint);
+router.post('/generate/range', authorizeRoles('admin', 'manager'), deliveryController.generateDeliveriesFromSubscriptions);
+
 // Delivery CRUD
 router.post('/', authorizeRoles('admin', 'manager'), createDeliveryValidator, validate, deliveryController.createDelivery);
 router.get('/', deliveryController.getAllDeliveries);

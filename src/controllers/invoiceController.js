@@ -1,5 +1,7 @@
 const { query, transaction } = require('../config/database');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/response');
+const pdfService = require('../services/pdfService');
+const emailService = require('../services/emailService');
 
 // Create invoice
 const createInvoice = async (req, res, next) => {
@@ -305,6 +307,152 @@ const deleteInvoice = async (req, res, next) => {
   }
 };
 
+// Download invoice PDF
+const downloadInvoicePDF = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Get invoice with all details
+    const invoiceResult = await query(
+      `SELECT i.*,
+              c.customer_code, c.full_name as customer_name,
+              c.phone as customer_phone, c.email as customer_email,
+              c.address_line1, c.address_line2, c.city, c.pincode
+       FROM invoices i
+       JOIN customers c ON i.customer_id = c.id
+       WHERE i.id = $1`,
+      [id]
+    );
+
+    if (invoiceResult.rows.length === 0) {
+      return errorResponse(res, 'Invoice not found', 404);
+    }
+
+    // Get line items
+    const lineItemsResult = await query(
+      `SELECT ili.*, p.product_name, p.unit
+       FROM invoice_line_items ili
+       JOIN product_catalog p ON ili.product_id = p.id
+       WHERE ili.invoice_id = $1
+       ORDER BY ili.created_at`,
+      [id]
+    );
+
+    const invoiceData = {
+      ...invoiceResult.rows[0],
+      customer: {
+        full_name: invoiceResult.rows[0].customer_name,
+        customer_code: invoiceResult.rows[0].customer_code,
+        phone: invoiceResult.rows[0].customer_phone,
+        email: invoiceResult.rows[0].customer_email,
+        address_line1: invoiceResult.rows[0].address_line1,
+        address_line2: invoiceResult.rows[0].address_line2,
+        city: invoiceResult.rows[0].city,
+        pincode: invoiceResult.rows[0].pincode,
+      },
+      line_items: lineItemsResult.rows,
+    };
+
+    // Generate PDF
+    const pdfBuffer = await pdfService.generateInvoicePDF(invoiceData);
+
+    // Set headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Invoice-${invoiceData.invoice_number}.pdf`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    // Send PDF
+    res.send(pdfBuffer);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Send invoice via email
+const sendInvoiceEmail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.body; // Optional: override customer email
+
+    // Get invoice with all details
+    const invoiceResult = await query(
+      `SELECT i.*,
+              c.customer_code, c.full_name as customer_name,
+              c.phone as customer_phone, c.email as customer_email,
+              c.address_line1, c.address_line2, c.city, c.pincode
+       FROM invoices i
+       JOIN customers c ON i.customer_id = c.id
+       WHERE i.id = $1`,
+      [id]
+    );
+
+    if (invoiceResult.rows.length === 0) {
+      return errorResponse(res, 'Invoice not found', 404);
+    }
+
+    const invoice = invoiceResult.rows[0];
+
+    // Check if customer has email
+    const recipientEmail = email || invoice.customer_email;
+    if (!recipientEmail) {
+      return errorResponse(res, 'Customer email not found. Please provide an email address.', 400);
+    }
+
+    // Get line items
+    const lineItemsResult = await query(
+      `SELECT ili.*, p.product_name, p.unit
+       FROM invoice_line_items ili
+       JOIN product_catalog p ON ili.product_id = p.id
+       WHERE ili.invoice_id = $1
+       ORDER BY ili.created_at`,
+      [id]
+    );
+
+    const invoiceData = {
+      ...invoice,
+      customer: {
+        full_name: invoice.customer_name,
+        customer_code: invoice.customer_code,
+        phone: invoice.customer_phone,
+        email: invoice.customer_email,
+        address_line1: invoice.address_line1,
+        address_line2: invoice.address_line2,
+        city: invoice.city,
+        pincode: invoice.pincode,
+      },
+      line_items: lineItemsResult.rows,
+    };
+
+    // Generate PDF
+    const pdfBuffer = await pdfService.generateInvoicePDF(invoiceData);
+
+    // Send email
+    await emailService.sendInvoiceEmail({
+      to: recipientEmail,
+      customerName: invoice.customer_name,
+      invoiceNumber: invoice.invoice_number,
+      totalAmount: parseFloat(invoice.total_amount),
+      dueDate: invoice.due_date,
+      pdfBuffer,
+    });
+
+    // Update invoice status to 'sent' if it was 'draft'
+    if (invoice.status === 'draft') {
+      await query(
+        `UPDATE invoices SET status = 'sent' WHERE id = $1`,
+        [id]
+      );
+    }
+
+    return successResponse(res, { sent_to: recipientEmail }, 'Invoice sent successfully');
+  } catch (error) {
+    if (error.message.includes('Email service not configured')) {
+      return errorResponse(res, 'Email service not configured. Please contact administrator.', 500);
+    }
+    next(error);
+  }
+};
+
 module.exports = {
   createInvoice,
   generateInvoiceFromDeliveries,
@@ -312,4 +460,6 @@ module.exports = {
   getInvoiceById,
   updateInvoice,
   deleteInvoice,
+  downloadInvoicePDF,
+  sendInvoiceEmail,
 };

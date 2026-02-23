@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, CheckCircle, XCircle, Clock, MapPin, AlertTriangle } from 'lucide-react';
+import { Package, CheckCircle, XCircle, Clock, MapPin, AlertTriangle, Trash2 } from 'lucide-react';
 import { deliveriesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import DeliveryCalendar from '../components/DeliveryCalendar';
@@ -80,6 +80,20 @@ const Deliveries: React.FC = () => {
     } catch (error) {
       toast.error('Failed to report exception');
       throw error;
+    }
+  };
+
+  const handleDeleteDelivery = async (deliveryId: string) => {
+    if (!confirm('Are you sure you want to delete this delivery? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await deliveriesAPI.delete(deliveryId);
+      toast.success('Delivery deleted successfully');
+      loadDeliveries();
+    } catch (error) {
+      toast.error('Failed to delete delivery');
     }
   };
 
@@ -235,31 +249,40 @@ const Deliveries: React.FC = () => {
                   )}
 
                   {/* Action Buttons */}
-                  {delivery.delivery_status !== 'delivered' && delivery.delivery_status !== 'cancelled' && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <button
-                        onClick={() => openDeliveredModal(delivery)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700 transition-colors flex items-center gap-2"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        Mark Delivered
-                      </button>
-                      <button
-                        onClick={() => openMissedModal(delivery)}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700 transition-colors flex items-center gap-2"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        Mark Missed
-                      </button>
-                      <button
-                        onClick={() => openExceptionModal(delivery)}
-                        className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium text-sm hover:bg-orange-700 transition-colors flex items-center gap-2"
-                      >
-                        <AlertTriangle className="w-4 h-4" />
-                        Report Exception
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {delivery.delivery_status !== 'delivered' && delivery.delivery_status !== 'cancelled' && (
+                      <>
+                        <button
+                          onClick={() => openDeliveredModal(delivery)}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700 transition-colors flex items-center gap-2"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          Mark Delivered
+                        </button>
+                        <button
+                          onClick={() => openMissedModal(delivery)}
+                          className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium text-sm hover:bg-orange-700 transition-colors flex items-center gap-2"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Mark Missed
+                        </button>
+                        <button
+                          onClick={() => openExceptionModal(delivery)}
+                          className="px-4 py-2 bg-yellow-600 text-white rounded-lg font-medium text-sm hover:bg-yellow-700 transition-colors flex items-center gap-2"
+                        >
+                          <AlertTriangle className="w-4 h-4" />
+                          Report Exception
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => handleDeleteDelivery(delivery.id)}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700 transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

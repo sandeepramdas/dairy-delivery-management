@@ -27,20 +27,40 @@ const createSubscription = async (req, res, next) => {
 
       // Create schedule entries
       const schedulePromises = schedule.map((item) => {
-        return client.query(
-          `INSERT INTO subscription_schedule
-           (subscription_plan_id, day_of_week, day_of_month, quantity, effective_from, effective_to)
-           VALUES ($1, $2, $3, $4, $5, $6)
-           RETURNING *`,
-          [
+        // Build dynamic query based on whether day_of_week or day_of_month is provided
+        const hasDayOfWeek = item.day_of_week !== undefined && item.day_of_week !== null;
+        const hasDayOfMonth = item.day_of_month !== undefined && item.day_of_month !== null;
+
+        let query, params;
+        if (hasDayOfWeek) {
+          query = `INSERT INTO subscription_schedule
+           (subscription_plan_id, day_of_week, quantity, effective_from, effective_to)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING *`;
+          params = [
             subscription.id,
-            item.day_of_week || null,
-            item.day_of_month || null,
+            item.day_of_week,
             item.quantity,
             item.effective_from || start_date,
             item.effective_to || null,
-          ]
-        );
+          ];
+        } else if (hasDayOfMonth) {
+          query = `INSERT INTO subscription_schedule
+           (subscription_plan_id, day_of_month, quantity, effective_from, effective_to)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING *`;
+          params = [
+            subscription.id,
+            item.day_of_month,
+            item.quantity,
+            item.effective_from || start_date,
+            item.effective_to || null,
+          ];
+        } else {
+          throw new Error('Schedule item must have either day_of_week or day_of_month');
+        }
+
+        return client.query(query, params);
       });
 
       const scheduleResults = await Promise.all(schedulePromises);
@@ -228,20 +248,40 @@ const updateSchedule = async (req, res, next) => {
 
       // Create new schedule entries
       const schedulePromises = schedule.map((item) => {
-        return client.query(
-          `INSERT INTO subscription_schedule
-           (subscription_plan_id, day_of_week, day_of_month, quantity, effective_from, effective_to)
-           VALUES ($1, $2, $3, $4, $5, $6)
-           RETURNING *`,
-          [
+        // Build dynamic query based on whether day_of_week or day_of_month is provided
+        const hasDayOfWeek = item.day_of_week !== undefined && item.day_of_week !== null;
+        const hasDayOfMonth = item.day_of_month !== undefined && item.day_of_month !== null;
+
+        let query, params;
+        if (hasDayOfWeek) {
+          query = `INSERT INTO subscription_schedule
+           (subscription_plan_id, day_of_week, quantity, effective_from, effective_to)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING *`;
+          params = [
             id,
-            item.day_of_week || null,
-            item.day_of_month || null,
+            item.day_of_week,
             item.quantity,
             item.effective_from || new Date(),
             item.effective_to || null,
-          ]
-        );
+          ];
+        } else if (hasDayOfMonth) {
+          query = `INSERT INTO subscription_schedule
+           (subscription_plan_id, day_of_month, quantity, effective_from, effective_to)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING *`;
+          params = [
+            id,
+            item.day_of_month,
+            item.quantity,
+            item.effective_from || new Date(),
+            item.effective_to || null,
+          ];
+        } else {
+          throw new Error('Schedule item must have either day_of_week or day_of_month');
+        }
+
+        return client.query(query, params);
       });
 
       const scheduleResults = await Promise.all(schedulePromises);

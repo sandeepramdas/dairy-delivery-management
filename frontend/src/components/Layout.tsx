@@ -12,6 +12,8 @@ import {
   Menu,
   X,
   MapPin,
+  Calendar,
+  TruckIcon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -28,7 +30,8 @@ const Layout: React.FC = () => {
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/customers', icon: Users, label: 'Customers' },
-    { to: '/deliveries', icon: Truck, label: 'Deliveries' },
+    { to: '/today-deliveries', icon: Truck, label: "Today's Deliveries" },
+    { to: '/deliveries', icon: Calendar, label: 'Delivery Calendar' },
     { to: '/subscriptions', icon: Package, label: 'Subscriptions' },
     { to: '/payments', icon: DollarSign, label: 'Payments' },
     { to: '/reports', icon: BarChart3, label: 'Reports' },

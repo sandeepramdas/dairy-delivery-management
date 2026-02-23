@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { DollarSign, Search, CheckCircle, CreditCard, Plus, Banknote, Smartphone, Building, Receipt, Eye } from 'lucide-react';
+import { DollarSign, Search, CheckCircle, CreditCard, Plus, Banknote, Smartphone, Building, Receipt, Eye, Trash2 } from 'lucide-react';
 import { paymentsAPI } from '../services/api';
 import PaymentModal from '../components/PaymentModal';
 import PaymentAllocationModal from '../components/PaymentAllocationModal';
@@ -58,6 +58,20 @@ const Payments: React.FC = () => {
   const handleViewAllocation = (paymentId: string) => {
     setSelectedPaymentId(paymentId);
     setIsAllocationModalOpen(true);
+  };
+
+  const handleDeletePayment = async (payment: Payment) => {
+    if (!confirm(`Are you sure you want to delete payment ${payment.payment_code}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await paymentsAPI.delete(payment.id);
+      toast.success('Payment deleted successfully');
+      loadPayments();
+    } catch (error) {
+      toast.error('Failed to delete payment');
+    }
   };
 
   const getPaymentMethodIcon = (method: string) => {
@@ -250,18 +264,26 @@ const Payments: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Button */}
-            {payment.allocated_invoices_count && payment.allocated_invoices_count > 0 && (
-              <div className="pt-3 border-t border-dairy-200">
+            {/* Action Buttons */}
+            <div className="pt-3 border-t border-dairy-200">
+              <div className="flex items-center gap-2">
+                {payment.allocated_invoices_count && payment.allocated_invoices_count > 0 && (
+                  <button
+                    onClick={() => handleViewAllocation(payment.id)}
+                    className="flex-1 btn-secondary text-sm py-2 flex items-center justify-center gap-2"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Allocation
+                  </button>
+                )}
                 <button
-                  onClick={() => handleViewAllocation(payment.id)}
-                  className="w-full btn-secondary text-sm py-2 flex items-center justify-center gap-2"
+                  onClick={() => handleDeletePayment(payment)}
+                  className="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
                 >
-                  <Eye className="w-4 h-4" />
-                  View Allocation
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-            )}
+            </div>
           </div>
         ))}
       </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Search, Calendar, Clock, Plus, Play, Pause, XCircle, Edit2, AlertCircle } from 'lucide-react';
+import { Package, Search, Calendar, Clock, Plus, Play, Pause, XCircle, Edit2, AlertCircle, Trash2 } from 'lucide-react';
 import { subscriptionsAPI } from '../services/api';
 import SubscriptionModal from '../components/SubscriptionModal';
 import toast from 'react-hot-toast';
@@ -23,7 +23,7 @@ interface ConfirmDialog {
   isOpen: boolean;
   title: string;
   message: string;
-  type: 'pause' | 'resume' | 'cancel' | null;
+  type: 'pause' | 'resume' | 'cancel' | 'delete' | null;
   subscriptionId: string | null;
 }
 
@@ -81,7 +81,7 @@ const Subscriptions: React.FC = () => {
   };
 
   const openConfirmDialog = (
-    type: 'pause' | 'resume' | 'cancel',
+    type: 'pause' | 'resume' | 'cancel' | 'delete',
     subscriptionId: string,
     customerName: string
   ) => {
@@ -97,6 +97,10 @@ const Subscriptions: React.FC = () => {
       cancel: {
         title: 'Cancel Subscription',
         message: `Are you sure you want to cancel the subscription for ${customerName}? This action will end the subscription permanently.`,
+      },
+      delete: {
+        title: 'Delete Subscription',
+        message: `Are you sure you want to delete the subscription for ${customerName}? This action cannot be undone and will permanently remove all subscription data.`,
       },
     };
 
@@ -126,6 +130,10 @@ const Subscriptions: React.FC = () => {
         case 'cancel':
           await subscriptionsAPI.cancel(confirmDialog.subscriptionId);
           toast.success('Subscription cancelled successfully');
+          break;
+        case 'delete':
+          await subscriptionsAPI.delete(confirmDialog.subscriptionId);
+          toast.success('Subscription deleted successfully');
           break;
       }
       loadSubscriptions();
@@ -310,11 +318,18 @@ const Subscriptions: React.FC = () => {
                   </button>
                   <button
                     onClick={() => openConfirmDialog('cancel', subscription.id, subscription.customer_name)}
-                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 text-sm py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1"
+                    className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-700 text-sm py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1"
                     disabled={actionLoading === subscription.id}
                   >
                     <XCircle className="w-4 h-4" />
                     Cancel
+                  </button>
+                  <button
+                    onClick={() => openConfirmDialog('delete', subscription.id, subscription.customer_name)}
+                    className="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1"
+                    disabled={actionLoading === subscription.id}
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </>
               )}
@@ -344,18 +359,34 @@ const Subscriptions: React.FC = () => {
                   </button>
                   <button
                     onClick={() => openConfirmDialog('cancel', subscription.id, subscription.customer_name)}
-                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 text-sm py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1"
+                    className="flex-1 bg-orange-50 hover:bg-orange-100 text-orange-700 text-sm py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1"
                     disabled={actionLoading === subscription.id}
                   >
                     <XCircle className="w-4 h-4" />
                     Cancel
                   </button>
+                  <button
+                    onClick={() => openConfirmDialog('delete', subscription.id, subscription.customer_name)}
+                    className="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1"
+                    disabled={actionLoading === subscription.id}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </>
               )}
               {subscription.status === 'cancelled' && (
-                <div className="flex-1 text-center text-sm text-dairy-500 py-2">
-                  Subscription cancelled
-                </div>
+                <>
+                  <div className="flex-1 text-center text-sm text-dairy-500 py-2">
+                    Subscription cancelled
+                  </div>
+                  <button
+                    onClick={() => openConfirmDialog('delete', subscription.id, subscription.customer_name)}
+                    className="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1"
+                    disabled={actionLoading === subscription.id}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </>
               )}
             </div>
           </div>

@@ -20,4 +20,8 @@ router.get('/:id', invoiceController.getInvoiceById);
 router.put('/:id', authorizeRoles('admin', 'manager'), updateInvoiceValidator, validate, invoiceController.updateInvoice);
 router.delete('/:id', authorizeRoles('admin'), invoiceController.deleteInvoice);
 
+// PDF & Email
+router.get('/:id/download', invoiceController.downloadInvoicePDF);
+router.post('/:id/send-email', authorizeRoles('admin', 'manager'), invoiceController.sendInvoiceEmail);
+
 module.exports = router;

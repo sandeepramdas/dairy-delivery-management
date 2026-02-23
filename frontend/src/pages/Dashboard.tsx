@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Package, TrendingUp, Users, DollarSign, AlertCircle, CheckCircle } from 'lucide-react';
-import { reportsAPI } from '../services/api';
+import { Package, TrendingUp, Users, DollarSign, AlertCircle, CheckCircle, Truck, Calendar, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { reportsAPI, deliveriesAPI } from '../services/api';
 import type { DashboardStats } from '../types';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -20,6 +23,41 @@ const Dashboard: React.FC = () => {
       toast.error('Failed to load dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateToday = async () => {
+    try {
+      setGenerating(true);
+      const response = await deliveriesAPI.generateToday();
+      const count = response.data.data.count;
+      if (count > 0) {
+        toast.success(`Generated ${count} deliveries for today`);
+      } else {
+        toast.success('All deliveries already generated for today');
+      }
+      loadDashboard();
+    } catch (error) {
+      toast.error('Failed to generate deliveries');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleGenerateTomorrow = async () => {
+    try {
+      setGenerating(true);
+      const response = await deliveriesAPI.generateTomorrow();
+      const count = response.data.data.count;
+      if (count > 0) {
+        toast.success(`Generated ${count} deliveries for tomorrow`);
+      } else {
+        toast.success('All deliveries already generated for tomorrow');
+      }
+    } catch (error) {
+      toast.error('Failed to generate deliveries');
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -176,17 +214,67 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Welcome Message */}
+      {/* Delivery Management Section */}
       <div className="card bg-gradient-to-r from-fresh-mint to-green-50 border-2 border-fresh-green/20">
+        <h3 className="text-lg font-display font-semibold text-gray-900 mb-4">
+          📦 Delivery Management
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            onClick={() => navigate('/today-deliveries')}
+            className="btn-primary flex items-center justify-center gap-2 py-4"
+          >
+            <Truck className="w-5 h-5" />
+            View Today's Deliveries
+          </button>
+          <button
+            onClick={() => navigate('/deliveries')}
+            className="px-6 py-4 bg-white text-fresh-green border-2 border-fresh-green rounded-xl font-semibold hover:bg-fresh-green hover:text-white transition-all flex items-center justify-center gap-2"
+          >
+            <Calendar className="w-5 h-5" />
+            Delivery Calendar
+          </button>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-fresh-green/20">
+          <p className="text-sm text-dairy-700 mb-3 font-medium">
+            🔄 Automatic Delivery Generation
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button
+              onClick={handleGenerateToday}
+              disabled={generating}
+              className="px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
+              {generating ? 'Generating...' : 'Generate Today'}
+            </button>
+            <button
+              onClick={handleGenerateTomorrow}
+              disabled={generating}
+              className="px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
+              {generating ? 'Generating...' : 'Generate Tomorrow'}
+            </button>
+          </div>
+          <p className="text-xs text-dairy-600 mt-2">
+            ℹ️ Deliveries are auto-generated from active subscriptions. Run this if you need to regenerate or if new subscriptions were added.
+          </p>
+        </div>
+      </div>
+
+      {/* Welcome Message */}
+      <div className="card bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-md">
-            <Package className="w-6 h-6 text-fresh-green" />
+            <Package className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <h3 className="text-lg font-display font-semibold text-gray-900 mb-1">
               🎉 Everything's Fresh Today!
             </h3>
-            <p className="text-dairy-700">
+            <p className="text-gray-700">
               You have {stats?.today_deliveries.pending || 0} deliveries pending.
               Keep up the great work delivering fresh milk to happy customers!
             </p>

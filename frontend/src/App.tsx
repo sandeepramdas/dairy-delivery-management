@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import Deliveries from './pages/Deliveries';
+import TodayDeliveries from './pages/TodayDeliveries';
 import Subscriptions from './pages/Subscriptions';
 import Payments from './pages/Payments';
 import Reports from './pages/Reports';
@@ -46,6 +47,7 @@ function AppRoutes() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="customers" element={<Customers />} />
+        <Route path="today-deliveries" element={<TodayDeliveries />} />
         <Route path="deliveries" element={<Deliveries />} />
         <Route path="subscriptions" element={<Subscriptions />} />
         <Route path="payments" element={<Payments />} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Plus, Phone, MapPin, User, Eye, Edit } from 'lucide-react';
+import { Search, Plus, Phone, MapPin, User, Eye, Edit, Trash2 } from 'lucide-react';
 import { customersAPI } from '../services/api';
 import type { Customer } from '../types';
 import toast from 'react-hot-toast';
@@ -69,6 +69,20 @@ const Customers: React.FC = () => {
     if (selectedCustomer) {
       setModalMode('edit');
       setIsModalOpen(true);
+    }
+  };
+
+  const handleDeleteCustomer = async (customer: Customer) => {
+    if (!confirm(`Are you sure you want to delete ${customer.full_name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await customersAPI.delete(customer.id);
+      toast.success('Customer deleted successfully');
+      loadCustomers();
+    } catch (error) {
+      toast.error('Failed to delete customer');
     }
   };
 
@@ -170,14 +184,20 @@ const Customers: React.FC = () => {
                     className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-fresh-mint text-fresh-green rounded-lg hover:bg-fresh-green hover:text-white transition-all duration-200 text-sm font-semibold"
                   >
                     <Eye className="w-4 h-4" />
-                    <span>View Details</span>
+                    <span>View</span>
                   </button>
                   <button
                     onClick={() => handleEditCustomer(customer)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-dairy-100 text-dairy-700 rounded-lg hover:bg-dairy-200 transition-all duration-200 text-sm font-semibold"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all duration-200 text-sm font-semibold"
                   >
                     <Edit className="w-4 h-4" />
                     <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCustomer(customer)}
+                    className="flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 text-sm font-semibold"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
